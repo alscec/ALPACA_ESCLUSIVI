@@ -1,0 +1,21 @@
+# Gestione automatica dei fine riga (CRLF vs LF)
+* text=auto
+
+# I file di testo forzati a LF (Linux/Mac standard) per evitare problemi con Docker/Bash
+*.js text eol=lf
+*.jsx text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+
+# File binari (non toccare)
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg text

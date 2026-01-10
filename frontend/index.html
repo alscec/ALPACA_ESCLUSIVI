@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO & Metadata -->
+    <title>Alpaca Esclusivi | The Luxury Digital Asset Market</title>
+    <meta name="description" content="Participate in the world's most exclusive digital farm. Only 10 Alpacas exist. Hostile takeovers, real-time bidding, and luxury asset management." />
+    <meta name="keywords" content="Alpaca, NFT, Digital Asset, Game, Luxury, Crypto, Bidding, Farm" />
+    <meta name="author" content="Alpaca Esclusivi S.r.l." />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.alpacaesclusivi.com/" />
+    <meta property="og:title" content="Alpaca Esclusivi - Luxury Assets" />
+    <meta property="og:description" content="Own one of the only 10 Alpacas in existence. Protect your asset or steal from others." />
+    <meta property="og:image" content="https://www.alpacaesclusivi.com/social-preview.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://www.alpacaesclusivi.com/" />
+    <meta property="twitter:title" content="Alpaca Esclusivi - Hostile Takeover Farm" />
+    <meta property="twitter:description" content="The most ruthless farming simulation. Bid high, hold on, and customize your luxury alpaca." />
+    <meta property="twitter:image" content="https://www.alpacaesclusivi.com/social-preview.jpg" />
+
+    <!-- Tailwind via CDN is acceptable for rapid prototyping, but for production consider installing via postcss -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        luxury: {
+                            black: '#121212',
+                            charcoal: '#1E1E1E',
+                            gold: '#D4AF37',
+                            goldLight: '#F3E5AB',
+                            silver: '#C0C0C0',
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Georgia', 'serif'],
+                        sans: ['Helvetica Neue', 'sans-serif'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #121212;
+            color: #e5e5e5;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+         ::-webkit-scrollbar-track {
+            background: #1E1E1E;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        
+         ::-webkit-scrollbar-thumb:hover {
+            background: #D4AF37;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+    <!-- Entry point for Vite Bundler -->
+    <script type="module" src="/src/index.tsx"></script>
+</body>
+
+</html>

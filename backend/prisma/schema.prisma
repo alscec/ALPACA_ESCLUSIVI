@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // (O postgresql se stai usando quello, mantieni quello che hai attivo)
+  url      = env("DATABASE_URL")
+}
+
+model Alpaca {
+  id           Int      @id
+  name         String
+  color        String
+  accessory    String
+  currentValue Float
+  ownerName    String
+  password     String   @default("$2a$10$default...") 
+  backgroundImage String? 
+  lastBidAt    DateTime @default(now())
+  stableColor  String   @default("#795548") // <--- NUOVA COLONNA
+
+  // RELAZIONE: Un Alpaca ha tante transazioni
+  history      Transaction[] 
+}
+
+// NUOVA TABELLA
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  alpacaId      Int
+  alpaca        Alpaca   @relation(fields: [alpacaId], references: [id])
+  timestamp     DateTime @default(now())
+  previousOwner String
+  newOwner      String
+  amount        Float
+}
