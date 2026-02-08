@@ -29,9 +29,14 @@ variable "environment" {
 
 # Database Configuration
 variable "db_tier" {
-  description = "Cloud SQL instance tier"
+  description = "Cloud SQL instance tier (use db-f1-micro for staging, db-custom-1-3840 for production)"
   type        = string
-  default     = "db-f1-micro" # For staging, use db-custom-1-3840 for production
+  default     = "db-f1-micro"
+  
+  validation {
+    condition     = can(regex("^db-(f1-micro|g1-small|custom-[0-9]+-[0-9]+)$", var.db_tier))
+    error_message = "Database tier must be a valid Cloud SQL tier (e.g., db-f1-micro, db-custom-1-3840)."
+  }
 }
 
 variable "db_disk_size" {
