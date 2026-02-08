@@ -3,8 +3,6 @@ import { describe, expect, it, beforeEach, jest } from '@jest/globals';
 import { BidOnAlpaca } from "../usecases/BidOnAlpaca";
 import { Alpaca, AccessoryType } from "../core/domain/Alpaca";
 import { IAlpacaRepository } from "../core/interfaces/IAlpacaRepository";
-import { SecurityService } from "../core/services/SecurityService";
-import { PaymentService } from "../core/services/PaymentService";
 
 // Mock Repository
 const mockRepo = {
@@ -13,25 +11,12 @@ const mockRepo = {
   getAll: jest.fn<() => Promise<Alpaca[]>>()
 };
 
-// Mock Services
-const mockSecurityService = {
-  hashPassword: jest.fn<(plainText: string) => Promise<string>>(),
-  verifyPassword: jest.fn<(plainText: string, hash: string) => Promise<boolean>>()
-};
-
-const mockPaymentService = {
-  createPaymentIntent: jest.fn<(amount: number, currency: string) => Promise<string>>(),
-  verifyPayment: jest.fn<(paymentId: string) => Promise<boolean>>()
-};
-
 describe("UseCase: BidOnAlpaca", () => {
   let useCase: BidOnAlpaca;
 
   beforeEach(() => {
     useCase = new BidOnAlpaca(
-      mockRepo as unknown as IAlpacaRepository,
-      mockSecurityService as unknown as SecurityService,
-      mockPaymentService as unknown as PaymentService
+      mockRepo as unknown as IAlpacaRepository
     );
     jest.clearAllMocks();
   });
@@ -39,9 +24,10 @@ describe("UseCase: BidOnAlpaca", () => {
   it("should successfully transfer ownership when bid is higher", async () => {
     // Arrange
     const initialAlpaca = new Alpaca(1, "Alpaca 1", "White", AccessoryType.NONE, 100, "User A");
+    // Set timestamp to 10 minutes ago to bypass cooldown
+    initialAlpaca.lastTransactionTimestamp = new Date(Date.now() - 10 * 60 * 1000);
     mockRepo.getById.mockResolvedValue(initialAlpaca);
     mockRepo.save.mockImplementation(async (a: Alpaca) => a);
-    mockSecurityService.hashPassword.mockResolvedValue("hashed_secret");
 
     // Act
     const result = await useCase.execute({ 

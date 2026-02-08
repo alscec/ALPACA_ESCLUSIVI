@@ -4,13 +4,13 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
-  root: './', // Root at project level based on your file structure
+  root: './',
   publicDir: 'public',
   build: {
     outDir: 'dist',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'frontend/index.html'),
+        main: path.resolve(__dirname, 'index.html'),
       },
     },
   },
