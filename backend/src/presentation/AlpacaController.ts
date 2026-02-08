@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { container } from "tsyringe";
 import { z } from "zod";
-import { BidOnAlpaca } from "../usecases/BidOnAlpaca"; // Controlla che i ../ siano giusti
+import { BidOnAlpaca } from "../usecases/BidOnAlpaca";
+import { IAlpacaRepository } from "../core/interfaces/IAlpacaRepository";
 import bcrypt from "bcryptjs";
 
 // Input Validation Schema
@@ -42,18 +43,18 @@ export class AlpacaController {
       // 4. Successo
       return res.status(200).json(updatedAlpaca);
 
-    } catch (error: any) {
+    } catch (error) {
       // 5. Gestione Errori
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       
       // Errore 404: Alpaca non trovato
-      if (error.message.includes("not found")) {
-        return res.status(404).json({ error: error.message });
+      if (errorMessage.includes("not found")) {
+        return res.status(404).json({ error: errorMessage });
       }
       
       // Errore 400: Offerta bassa O Cooldown attivo (LOCKED)
-      // HO AGGIUNTO IL CHECK SU "LOCKED" QUI SOTTO 👇
-      if (error.message.includes("Bid too low") || error.message.includes("LOCKED")) {
-        return res.status(400).json({ error: error.message });
+      if (errorMessage.includes("Bid too low") || errorMessage.includes("LOCKED")) {
+        return res.status(400).json({ error: errorMessage });
       }
       
       // Altri errori (es. Database crash)
@@ -61,15 +62,22 @@ export class AlpacaController {
     }
   }
 
-  // ... metodo bid esistente ...
+  static async getAll(req: Request, res: Response, next: NextFunction) {
+    try {
+      const repo = container.resolve<IAlpacaRepository>("AlpacaRepository");
+      const alpacas = await repo.getAll();
+      return res.status(200).json(alpacas);
+    } catch (error) {
+      next(error);
+    }
+  }
 
-  // AGGIUNGI QUESTO SOTTO:
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       const { password, ...updates } = req.body; 
 
-      const repo = container.resolve("AlpacaRepository") as any;
+      const repo = container.resolve<IAlpacaRepository>("AlpacaRepository");
       const alpaca = await repo.getById(Number(id));
 
       if (!alpaca) return res.status(404).json({ error: "Alpaca not found" });
@@ -89,14 +97,14 @@ export class AlpacaController {
       // 2. APPLICA MODIFICHE (Incluso stableColor)
       if (updates.name) alpaca.name = updates.name;
       if (updates.color) alpaca.color = updates.color;
-      if (updates.stableColor) alpaca.stableColor = updates.stableColor; // <--- FIX STALLA
+      if (updates.stableColor) alpaca.stableColor = updates.stableColor;
       if (updates.accessory) alpaca.accessory = updates.accessory;
       if (updates.backgroundImage) alpaca.backgroundImage = updates.backgroundImage;
 
       await repo.save(alpaca);
       
       return res.status(200).json(alpaca);
-    } catch (error: any) {
+    } catch (error) {
       next(error);
     }
   }

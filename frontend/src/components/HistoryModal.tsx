@@ -40,9 +40,9 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ alpaca, isOpen, onCl
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800">
-              {alpaca.history.map((tx, idx) => {
+              {alpaca.history?.map((tx, idx) => {
                 // Calculate how long previous owner held it before this tx
-                const prevTx = alpaca.history[idx + 1];
+                const prevTx = alpaca.history?.[idx + 1];
                 const duration = calculateDuration(tx.timestamp, prevTx?.timestamp);
 
                 return (
@@ -56,7 +56,7 @@ export const HistoryModal: React.FC<HistoryModalProps> = ({ alpaca, isOpen, onCl
                   </tr>
                 );
               })}
-              {alpaca.history.length === 0 && (
+              {(!alpaca.history || alpaca.history.length === 0) && (
                 <tr>
                   <td colSpan={4} className="p-4 text-center italic opacity-50">No transactions recorded yet. Owned by System DAO.</td>
                 </tr>
