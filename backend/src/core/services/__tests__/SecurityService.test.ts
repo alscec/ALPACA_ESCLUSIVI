@@ -105,9 +105,11 @@ describe('Service: SecurityService', () => {
 
       const isValid = await securityService.verifyPassword('', hash);
 
-      // In simulation, empty string will still match because it checks if hash starts with "hashed_"
-      // This test documents current simulation behavior
-      expect(isValid).toBe(true);
+      // NOTE: This test documents current SIMULATION behavior which accepts empty passwords.
+      // In production with real bcrypt, empty passwords would be rejected.
+      // This is a known limitation of the simulation implementation.
+      // TODO: Replace simulation with real bcrypt implementation before production.
+      expect(isValid).toBe(true); // Current simulation behavior
     });
 
     it('should handle empty hash', async () => {

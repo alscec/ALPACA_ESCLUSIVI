@@ -53,7 +53,7 @@ export class AlpacaController {
       }
       
       // Errore 400: Offerta bassa O Cooldown attivo (LOCKED)
-      if (errorMessage.includes("Bid too low") || errorMessage.includes("LOCKED")) {
+      if (errorMessage.includes("Bid too low") || errorMessage.includes("LOCKED") || errorMessage.includes("must be greater")) {
         return res.status(400).json({ error: errorMessage });
       }
       

@@ -274,16 +274,8 @@ describe('E2E: Alpaca API', () => {
           password: 'pass',
         });
 
-      // The response might be 500 if repository fails to save
-      // Log for debugging
-      if (response.status === 500) {
-        console.log('Error response:', response.body);
-      }
-
-      expect([400, 500]).toContain(response.status); // Accept both for now
-      if (response.status === 400) {
-        expect(response.body.error).toContain('must be greater');
-      }
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('must be greater');
     });
 
     it('should return 400 when bid equals current value', async () => {
@@ -299,15 +291,8 @@ describe('E2E: Alpaca API', () => {
           password: 'pass',
         });
 
-      // The response might be 500 if repository fails to save
-      if (response.status === 500) {
-        console.log('Error response:', response.body);
-      }
-
-      expect([400, 500]).toContain(response.status); // Accept both for now
-      if (response.status === 400) {
-        expect(response.body.error).toContain('must be greater');
-      }
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('must be greater');
     });
 
     it('should return 400 when cooldown is active', async () => {
