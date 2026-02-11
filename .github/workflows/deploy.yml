@@ -45,7 +45,15 @@ jobs:
       
       - name: Run tests
         working-directory: backend
-        run: npm test
+        run: npm test -- --coverage
+
+      - name: Upload backend coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./backend/coverage/coverage-final.json
+          flags: backend
+          name: backend-coverage
+        continue-on-error: true
 
   build-and-deploy:
     name: Build and Deploy
@@ -164,6 +172,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
+      
+      - name: Run frontend tests
+        working-directory: frontend
+        run: npm test
       
       - name: Set environment variables
         working-directory: frontend
