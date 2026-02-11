@@ -40,7 +40,20 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// --- JSON PARSING ERROR HANDLER ---
 app.use(express.json());
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    logger.error('JSON parsing error', { 
+      error: err.message, 
+      path: req.path 
+    });
+    return res.status(400).json({ 
+      error: 'Invalid JSON in request body' 
+    });
+  }
+  next(err);
+});
 
 // --- HEALTH CHECK ENDPOINT ---
 app.get("/health", (req, res) => {
@@ -51,6 +64,19 @@ app.get("/health", (req, res) => {
 app.get("/api/alpaca", (req, res, next) => AlpacaController.getAll(req, res, next));
 app.post("/api/alpaca/:id/bid", (req, res, next) => AlpacaController.bid(req, res, next));
 app.patch("/api/alpaca/:id", (req, res, next) => AlpacaController.update(req, res, next));
+
+// --- 404 HANDLER (must be after all routes) ---
+app.use((req, res) => {
+  logger.warn('Route not found', {
+    method: req.method,
+    path: req.path,
+    ip: req.ip
+  });
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path 
+  });
+});
 
 // --- ERROR HANDLING MIDDLEWARE ---
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
