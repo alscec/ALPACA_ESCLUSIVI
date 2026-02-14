@@ -1,35 +1,27 @@
 import "reflect-metadata"; // PRIMA RIGA OBBLIGATORIA
-import express from "express";
-import cors from "cors";
 import { container } from "tsyringe";
 import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs"; // <--- AGGIUNGI QUESTO IMPORT
+import bcrypt from "bcryptjs";
 
 // Importazioni interne
 import { PrismaAlpacaRepository } from "./infrastructure/PrismaAlpacaRepository";
-import { AlpacaController } from "./presentation/AlpacaController";
-import { AccessoryType } from "./core/domain/Alpaca";
+import app from "./app"; // Import the configured Express app
+import logger from "./infrastructure/logger";
 
 // --- 1. SETUP DEPENDENCY INJECTION ---
 container.register("AlpacaRepository", { useClass: PrismaAlpacaRepository });
 
-// --- 2. SETUP EXPRESS ---
-const app = express();
-// Usa la porta di Google o 3000 per locale
-const PORT = process.env.PORT || 3000; 
-
-app.use(cors()); // Permette al frontend di chiamare
-app.use(express.json());
+// --- 2. SETUP PORT ---
+const PORT = process.env.PORT || 3000;
 
 const prisma = new PrismaClient();
 
 // --- 3. SEEDING (Crea i 10 Alpaca se non esistono) ---
-// --- SEEDING SICURO ---
 async function seedDatabase() {
   try {
     const count = await prisma.alpaca.count();
     if (count === 0) {
-      console.log("🌱 Database vuoto. Creo i 10 Alpaca...");
+      logger.info("🌱 Database vuoto. Creo i 10 Alpaca...");
       
       // CREIAMO UN HASH VERO PER LA PASSWORD DI DEFAULT "default123"
       const defaultPasswordHash = await bcrypt.hash("default123", 10);
@@ -44,33 +36,63 @@ async function seedDatabase() {
             accessory: "None",
             currentValue: 100.0,
             ownerName: "System DAO",
-            password: defaultPasswordHash, // <--- USIAMO L'HASH, NON IL TESTO
+            password: defaultPasswordHash,
             backgroundImage: null,
             lastBidAt: new Date(0)
           }
         });
       }
-      console.log("✅ Seeding completato con password criptate.");
+      logger.info("✅ Seeding completato con password criptate.");
     }
   } catch (e) {
-    console.error("⚠️ Errore seeding: database error", e);
+    logger.error("⚠️ Errore seeding", { error: e instanceof Error ? e.message : 'Unknown error' });
+    // Don't throw - allow server to start even if seeding fails
   }
 }
 
-// --- 4. ROTTE ---
-// Get All (Usiamo il repository direttamente per semplicità in lettura)
-app.get("/api/alpaca", async (req, res) => {
-  const repo = container.resolve(PrismaAlpacaRepository);
-  const alpacas = await repo.getAll();
-  res.json(alpacas);
+// --- 4. GRACEFUL SHUTDOWN HANDLER ---
+async function gracefulShutdown(signal: string) {
+  logger.info(`${signal} received. Starting graceful shutdown...`);
+  
+  try {
+    await prisma.$disconnect();
+    logger.info('Database connections closed.');
+    process.exit(0);
+  } catch (err) {
+    logger.error('Error during graceful shutdown', { error: err instanceof Error ? err.message : 'Unknown error' });
+    process.exit(1);
+  }
+}
+
+// --- 5. PROCESS ERROR HANDLERS ---
+process.on('uncaughtException', (error: Error) => {
+  logger.error('UNCAUGHT EXCEPTION! Shutting down...', {
+    error: error.message,
+    stack: error.stack
+  });
+  process.exit(1);
 });
 
-app.get("/api/alpaca", async (req, res) => { /* ... */ });
-app.post("/api/alpaca/:id/bid", (req, res, next) => AlpacaController.bid(req, res, next));
-app.patch("/api/alpaca/:id", (req, res, next) => AlpacaController.update(req, res, next));
-app.get("/", (req, res) => res.send("🦙 Alpaclub Backend Secure and Ready"));
+process.on('unhandledRejection', (reason: any) => {
+  logger.error('UNHANDLED REJECTION! Shutting down...', {
+    reason: reason instanceof Error ? reason.message : String(reason)
+  });
+  process.exit(1);
+});
 
-app.listen(PORT, async () => {
-  console.log(`🚀 Server listening on port ${PORT}`);
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// --- 6. START SERVER ---
+const server = app.listen(PORT, async () => {
+  logger.info(`🚀 Server listening on port ${PORT}`);
   await seedDatabase();
 });
+
+// Handle server errors
+server.on('error', (error: Error) => {
+  logger.error('Server error', { error: error.message, stack: error.stack });
+  process.exit(1);
+});
+
+export default server;

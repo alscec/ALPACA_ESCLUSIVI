@@ -20,6 +20,12 @@ export class AlpacaController {
     try {
       const { id } = req.params;
       
+      // 0. Validate alpacaId is a valid number
+      const alpacaId = Number(id);
+      if (isNaN(alpacaId) || alpacaId <= 0) {
+        return res.status(400).json({ error: "Invalid alpaca ID" });
+      }
+      
       // 1. Validazione Input
       const validationResult = BidSchema.safeParse(req.body);
       
@@ -34,7 +40,7 @@ export class AlpacaController {
       
       // 3. Esecuzione (Passiamo la password in chiaro, il UseCase farà l'hash)
       const updatedAlpaca = await useCase.execute({
-        alpacaId: Number(id),
+        alpacaId,
         amount,
         newOwner,
         newPasswordPlain: password 
@@ -53,7 +59,7 @@ export class AlpacaController {
       }
       
       // Errore 400: Offerta bassa O Cooldown attivo (LOCKED)
-      if (errorMessage.includes("Bid too low") || errorMessage.includes("LOCKED")) {
+      if (errorMessage.includes("Bid too low") || errorMessage.includes("LOCKED") || errorMessage.includes("must be greater")) {
         return res.status(400).json({ error: errorMessage });
       }
       
@@ -75,10 +81,17 @@ export class AlpacaController {
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
+      
+      // 0. Validate alpacaId is a valid number
+      const alpacaId = Number(id);
+      if (isNaN(alpacaId) || alpacaId <= 0) {
+        return res.status(400).json({ error: "Invalid alpaca ID" });
+      }
+      
       const { password, ...updates } = req.body; 
 
       const repo = container.resolve<IAlpacaRepository>("AlpacaRepository");
-      const alpaca = await repo.getById(Number(id));
+      const alpaca = await repo.getById(alpacaId);
 
       if (!alpaca) return res.status(404).json({ error: "Alpaca not found" });
 
